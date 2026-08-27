@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>📚 Minha Biblioteca</title>
-
+    
     <!-- Configurações para App no iPhone (iOS) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Biblioteca">
     
-    <!-- Ícone da App (referência ao icon.png no repositório) -->
+    <!-- Ícone da App (referência ao icon.png do repositório) -->
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -26,6 +27,7 @@
             background: #ffffff;
             min-height: 100vh;
             padding: 16px;
+            padding-bottom: calc(90px + env(safe-area-inset-bottom));
             color: #333;
         }
 
@@ -34,6 +36,67 @@
             margin: 0 auto;
         }
 
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Bottom Navigation com suporte para a safe area do iOS */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 999;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-tab {
+            flex: 1;
+            max-width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            color: #999;
+            font-size: 0.8rem;
+            font-weight: 500;
+            gap: 4px;
+        }
+
+        .nav-tab:hover {
+            color: #555;
+        }
+
+        .nav-tab.active {
+            color: #222;
+        }
+
+        .nav-tab .nav-icon {
+            font-size: 1.4rem;
+        }
+
+        .nav-tab .nav-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Header */
         header {
             text-align: center;
             margin-bottom: 24px;
@@ -132,6 +195,150 @@
             font-weight: 600;
             cursor: pointer;
             margin-top: 8px;
+        }
+
+        /* Settings Page */
+        .settings-header {
+            text-align: center;
+            padding: 20px 10px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .settings-header h1 {
+            font-size: 1.6rem;
+            color: #222;
+            margin-bottom: 8px;
+        }
+
+        .settings-header p {
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        .settings-section {
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+        }
+
+        .settings-section h2 {
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .settings-description {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+        }
+
+        .import-columns {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .import-columns code {
+            background: #f0f0f0;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #333;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 15px;
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            background: #fff;
+        }
+
+        .file-input-label .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .file-input-label .text {
+            font-size: 0.95rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .file-input-label .subtext {
+            font-size: 0.8rem;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .import-result {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: none;
+            margin-top: 12px;
+        }
+
+        .import-result.success {
+            display: block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .import-result.error {
+            display: block;
+            background: #fbe9e7;
+            color: #c62828;
+            border: 1px solid #ffccbc;
+        }
+
+        /* Export Button */
+        .btn-export {
+            width: 100%;
+            padding: 14px;
+            background: #222;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .export-info {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #999;
+            text-align: center;
         }
 
         /* Search & Filter */
@@ -290,7 +497,7 @@
             font-size: 1.05rem;
         }
 
-        /* Modal for editing price */
+        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -357,7 +564,7 @@
         /* Toast */
         .toast {
             position: fixed;
-            bottom: 20px;
+            bottom: calc(80px + env(safe-area-inset-bottom));
             left: 20px;
             right: 20px;
             padding: 14px 24px;
@@ -405,98 +612,153 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <header>
-            <h1>📚 Minha Biblioteca</h1>
-            <p>Organize os livros que deseja comprar e os que já comprou</p>
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-number" id="totalBooks">0</div>
-                    <div class="stat-label">Total</div>
+
+        <!-- ==================== HOME TAB ==================== -->
+        <div class="tab-content active" id="homeTab">
+            <header>
+                <h1>📚 Minha Biblioteca</h1>
+                <p>Organize os livros que deseja comprar e os que já comprou</p>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalBooks">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="wishlistCount">0</div>
+                        <div class="stat-label">Por Comprar</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="boughtCount">0</div>
+                        <div class="stat-label">Comprados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalSpent">0€</div>
+                        <div class="stat-label">Total Gasto</div>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="wishlistCount">0</div>
-                    <div class="stat-label">Por Comprar</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="boughtCount">0</div>
-                    <div class="stat-label">Comprados</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="totalSpent">0€</div>
-                    <div class="stat-label">Total Gasto</div>
+            </header>
+
+            <!-- Add Book Form -->
+            <div class="form-section">
+                <h2>➕ Adicionar Livro</h2>
+                <form id="bookForm" class="form-grid">
+                    <div class="form-group">
+                        <label for="title">Título</label>
+                        <input type="text" id="title" placeholder="Ex: O Senhor dos Anéis" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="author">Autor</label>
+                        <input type="text" id="author" placeholder="Ex: J.R.R. Tolkien" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="genre">Género</label>
+                        <select id="genre">
+                            <option value="Ficção">Ficção</option>
+                            <option value="Não-Ficção">Não-Ficção</option>
+                            <option value="Romance">Romance</option>
+                            <option value="Fantasia">Fantasia</option>
+                            <option value="Ficção Científica">Ficção Científica</option>
+                            <option value="Mistério">Mistério</option>
+                            <option value="Terror">Terror</option>
+                            <option value="Biografia">Biografia</option>
+                            <option value="Autoajuda">Autoajuda</option>
+                            <option value="Técnico">Técnico</option>
+                            <option value="Poesia">Poesia</option>
+                            <option value="História">História</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Estado</label>
+                        <select id="status">
+                            <option value="wishlist">🛒 Quero Comprar</option>
+                            <option value="bought">✅ Já Comprei</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="currentPrice">Preço Atual (€)</label>
+                        <input type="number" id="currentPrice" placeholder="Ex: 14.99" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="pricePaid">Preço que Paguei (€)</label>
+                        <input type="number" id="pricePaid" placeholder="Preenche quando comprares" step="0.01" min="0">
+                    </div>
+                    <button type="submit" class="btn-add">📖 Adicionar Livro</button>
+                </form>
+            </div>
+
+            <!-- Search & Filter -->
+            <div class="search-section">
+                <div class="search-bar">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="searchInput" placeholder="Pesquisar por título ou autor...">
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="wishlist">🛒 Por Comprar</button>
+                        <button class="filter-btn" data-filter="bought">✅ Comprados</button>
+                    </div>
                 </div>
             </div>
-        </header>
 
-        <!-- Add Book Form -->
-        <div class="form-section">
-            <h2>➕ Adicionar Livro</h2>
-            <form id="bookForm" class="form-grid">
-                <div class="form-group">
-                    <label for="title">Título</label>
-                    <input type="text" id="title" placeholder="Ex: O Senhor dos Anéis" required>
-                </div>
-                <div class="form-group">
-                    <label for="author">Autor</label>
-                    <input type="text" id="author" placeholder="Ex: J.R.R. Tolkien" required>
-                </div>
-                <div class="form-group">
-                    <label for="genre">Género</label>
-                    <select id="genre">
-                        <option value="Ficção">Ficção</option>
-                        <option value="Não-Ficção">Não-Ficção</option>
-                        <option value="Romance">Romance</option>
-                        <option value="Fantasia">Fantasia</option>
-                        <option value="Ficção Científica">Ficção Científica</option>
-                        <option value="Mistério">Mistério</option>
-                        <option value="Terror">Terror</option>
-                        <option value="Biografia">Biografia</option>
-                        <option value="Autoajuda">Autoajuda</option>
-                        <option value="Técnico">Técnico</option>
-                        <option value="Poesia">Poesia</option>
-                        <option value="História">História</option>
-                        <option value="Outro">Outro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="status">Estado</label>
-                    <select id="status">
-                        <option value="wishlist">🛒 Quero Comprar</option>
-                        <option value="bought">✅ Já Comprei</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="currentPrice">Preço Atual (€)</label>
-                    <input type="number" id="currentPrice" placeholder="Ex: 14.99" step="0.01" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="pricePaid">Preço que Paguei (€)</label>
-                    <input type="number" id="pricePaid" placeholder="Preenche quando comprares" step="0.01" min="0">
-                </div>
-                <button type="submit" class="btn-add">📖 Adicionar Livro</button>
-            </form>
+            <!-- Book List -->
+            <div class="book-list" id="bookList"></div>
         </div>
 
-        <!-- Search & Filter -->
-        <div class="search-section">
-            <div class="search-bar">
-                <div class="search-input-wrapper">
-                    <input type="text" id="searchInput" placeholder="Pesquisar por título ou autor...">
+        <!-- ==================== SETTINGS TAB ==================== -->
+        <div class="tab-content" id="settingsTab">
+            <div class="settings-header">
+                <h1>⚙️ Definições</h1>
+                <p>Importar e exportar os teus dados</p>
+            </div>
+
+            <!-- Import Section -->
+            <div class="settings-section">
+                <h2>📥 Importar Excel</h2>
+                <p class="settings-description">Importa a tua lista de livros a partir de um ficheiro Excel (.xlsx ou .xls)</p>
+                <div class="import-columns">
+                    <strong>Colunas esperadas no Excel:</strong><br><br>
+                    <code>TITULO LIVRO</code> · <code>AUTOR</code> · <code>PREÇO ORIGINAL</code> · <code>VALOR PAGO</code> · <code>GÉNERO</code><br><br>
+                    📌 Se o livro tiver <code>VALOR PAGO</code> preenchido, fica automaticamente com estado "Já Comprei"
                 </div>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all">Todos</button>
-                    <button class="filter-btn" data-filter="wishlist">🛒 Por Comprar</button>
-                    <button class="filter-btn" data-filter="bought">✅ Comprados</button>
+                <div class="file-input-wrapper">
+                    <input type="file" id="excelFile" accept=".xlsx,.xls">
+                    <label for="excelFile" class="file-input-label">
+                        <span class="icon">📄</span>
+                        <span class="text">Clica para escolher o ficheiro Excel</span>
+                        <span class="subtext">Formatos aceites: .xlsx, .xls</span>
+                    </label>
                 </div>
+                <div class="import-result" id="importResult"></div>
+            </div>
+
+            <!-- Export Section -->
+            <div class="settings-section">
+                <h2>📤 Exportar Dados</h2>
+                <p class="settings-description">Faz download de todos os teus livros num ficheiro Excel</p>
+                <button class="btn-export" onclick="exportBooks()">
+                    <span class="export-icon">📤</span>
+                    <span>Exportar para Excel</span>
+                </button>
+                <p class="export-info">O ficheiro será guardado na tua pasta de Downloads</p>
             </div>
         </div>
 
-        <!-- Book List -->
-        <div class="book-list" id="bookList"></div>
     </div>
 
-    <!-- Modal for editing price -->
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-tab active" data-tab="homeTab">
+            <span class="nav-icon">📚</span>
+            <span class="nav-label">Biblioteca</span>
+        </button>
+        <button class="nav-tab" data-tab="settingsTab">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Definições</span>
+        </button>
+    </nav>
+
+    <!-- Modal for editing prices -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <h3>✏️ Editar Preços</h3>
@@ -519,6 +781,20 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // ====== TAB NAVIGATION ======
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        navTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                navTabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
         // ====== DATA MANAGEMENT ======
         class BookManager {
             constructor() {
@@ -537,11 +813,35 @@
             }
 
             addBook(book) {
-                book.id = Date.now().toString();
+                book.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
                 book.dateAdded = new Date().toLocaleDateString('pt-PT');
                 this.books.unshift(book);
                 this.saveBooks();
                 return book;
+            }
+
+            addMultipleBooks(books) {
+                let added = 0;
+                let skipped = 0;
+
+                books.forEach(book => {
+                    const exists = this.books.some(
+                        b => b.title.toLowerCase() === book.title.toLowerCase() &&
+                             b.author.toLowerCase() === book.author.toLowerCase()
+                    );
+
+                    if (!exists && book.title) {
+                        book.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+                        book.dateAdded = new Date().toLocaleDateString('pt-PT');
+                        this.books.unshift(book);
+                        added++;
+                    } else {
+                        skipped++;
+                    }
+                });
+
+                this.saveBooks();
+                return { added, skipped };
             }
 
             deleteBook(id) {
@@ -563,6 +863,9 @@
                 if (book) {
                     book.currentPrice = currentPrice;
                     book.pricePaid = pricePaid;
+                    if (pricePaid && parseFloat(pricePaid) > 0) {
+                        book.status = 'bought';
+                    }
                     this.saveBooks();
                 }
                 return book;
@@ -610,7 +913,117 @@
         const filterButtons = document.querySelectorAll('.filter-btn');
         const toast = document.getElementById('toast');
         const modalOverlay = document.getElementById('modalOverlay');
+        const excelFile = document.getElementById('excelFile');
+        const importResult = document.getElementById('importResult');
 
+        // ====== EXCEL IMPORT ======
+        excelFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+                    if (rows.length === 0) {
+                        showImportResult('O ficheiro está vazio ou as colunas não foram reconhecidas.', false);
+                        return;
+                    }
+
+                    const books = rows.map(row => {
+                        const title = row['TITULO LIVRO'] || row['TITULO'] || row['Titulo Livro'] || row['Título Livro'] || row['TÍTULO LIVRO'] || '';
+                        const author = row['AUTOR'] || row['Autor'] || '';
+                        const currentPrice = row['PREÇO ORIGINAL'] || row['PRECO ORIGINAL'] || row['Preço Original'] || row['Preco Original'] || '';
+                        const pricePaid = row['VALOR PAGO'] || row['Valor Pago'] || '';
+                        const genre = row['GÉNERO'] || row['GENERO'] || row['Género'] || row['Genero'] || 'Outro';
+
+                        const cleanPrice = (val) => {
+                            if (!val || val === '' || val === '-   €' || val === '- €' || val === '-€') return '';
+                            return String(val).replace(',', '.').replace('€', '').replace(/\s/g, '').trim();
+                        };
+
+                        const cleanedPricePaid = cleanPrice(pricePaid);
+                        const hasPaid = cleanedPricePaid !== '' && parseFloat(cleanedPricePaid) > 0;
+                        const status = hasPaid ? 'bought' : 'wishlist';
+
+                        return {
+                            title: String(title).trim(),
+                            author: String(author).trim(),
+                            currentPrice: cleanPrice(currentPrice),
+                            pricePaid: cleanedPricePaid,
+                            genre: String(genre).trim(),
+                            status: status
+                        };
+                    }).filter(book => book.title !== '');
+
+                    if (books.length === 0) {
+                        showImportResult('Nenhum livro encontrado. Verifica se a coluna "TITULO LIVRO" existe no Excel.', false);
+                        return;
+                    }
+
+                    const result = manager.addMultipleBooks(books);
+                    renderBooks();
+
+                    let message = `✅ ${result.added} livro(s) importado(s) com sucesso!`;
+                    if (result.skipped > 0) {
+                        message += ` (${result.skipped} ignorado(s) por já existirem)`;
+                    }
+                    showImportResult(message, true);
+                    showToast(`${result.added} livros importados! 📚`);
+
+                } catch (error) {
+                    console.error(error);
+                    showImportResult('Erro ao ler o ficheiro. Verifica se é um Excel válido (.xlsx ou .xls).', false);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+            e.target.value = '';
+        });
+
+        // ====== EXCEL EXPORT ======
+        function exportBooks() {
+            if (manager.books.length === 0) {
+                showToast('Não tens livros para exportar.');
+                return;
+            }
+
+            const exportData = manager.books.map(book => ({
+                'TITULO LIVRO': book.title,
+                'AUTOR': book.author,
+                'GÉNERO': book.genre,
+                'ESTADO': book.status === 'bought' ? 'Comprado' : 'Por Comprar',
+                'PREÇO ORIGINAL': book.currentPrice ? parseFloat(book.currentPrice).toFixed(2) + ' €' : '',
+                'VALOR PAGO': book.pricePaid ? parseFloat(book.pricePaid).toFixed(2) + ' €' : '',
+                'DATA ADICIONADO': book.dateAdded || ''
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Biblioteca');
+
+            const colWidths = Object.keys(exportData[0]).map(key => ({
+                wch: Math.max(key.length, ...exportData.map(row => (row[key] || '').length)) + 2
+            }));
+            worksheet['!cols'] = colWidths;
+
+            XLSX.writeFile(workbook, 'Minha_Biblioteca.xlsx');
+            showToast('Ficheiro exportado com sucesso! 📤');
+        }
+
+        function showImportResult(message, success) {
+            importResult.textContent = message;
+            importResult.className = `import-result ${success ? 'success' : 'error'}`;
+        }
+
+        // ====== RENDER ======
         function renderBooks() {
             const books = manager.getFilteredBooks();
 
@@ -688,7 +1101,7 @@
             return div.innerHTML;
         }
 
-        // Modal functions
+        // Modal
         function openEditPrice(id) {
             editingBookId = id;
             const book = manager.books.find(b => b.id === id);
@@ -711,13 +1124,11 @@
             showToast('Preços atualizados! 💰');
         }
 
-        // Close modal clicking outside
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
         });
 
         // ====== EVENT HANDLERS ======
-
         bookForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
